@@ -27,10 +27,10 @@ def implicit_solution(r: [float],
 
     u = np.zeros((K + 1, I + 1))
 
-    for i in range(0, I - 1):
+    for i in range(0, I):
         u[0][i] = psi(r[i])
 
-    p_0 = 2.0 * gamma / alpha_0
+    p_0 = 4.0 * gamma / alpha_0
     q_0 = 1.0 / alpha_0
 
     for k in range(1, K + 1):
