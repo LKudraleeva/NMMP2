@@ -54,33 +54,36 @@ def implicit_solution(r: [float],
     return u
 
 
-def plot(result, arr, arr2, values, label):
+def plot(result, arr, arr2, values, label, cur_i, cur_k):
     h = arr[1] - arr[0]
     for value in values:
         k = ceil(value / h)
         if label == 'r':
-            plt.plot(arr2, result[:, k], label=label + ' = ' + str(value))
+            plt.plot(arr2, result[:, k], label=label + ' = ' + str(value) + ' I = ' + str(cur_i) + ' K = ' + str(cur_k))
             plt.xlabel('t')
         else:
-            plt.plot(arr2, result[k, :], label=label + ' = ' + str(value))
+            plt.plot(arr2, result[k, :], label=label + ' = ' + str(value) + ' I = ' + str(cur_i) + ' K = ' + str(cur_k))
             plt.xlabel('r')
-
-    plt.ylabel("U(r, t)")
-    plt.grid()
-    plt.legend()
-    plt.show()
 
 
 if __name__ == '__main__':
     R = 3.0
     T = 80.0
     n = 1000
-    t_ar = np.linspace(0, T, num=100)
-    r_ar = np.linspace(0, R, num=200)
+    I = [10, 20, 40, 80, 160, 320]
+    K = [20, 40, 80, 160, 320, 640]
 
-    v = implicit_solution(r_ar, t_ar, 2.64, 0.13, 0.002, 0.5)
+    for i, k in zip(I, K):
+        t_ar = np.linspace(0, T, num=i)
+        r_ar = np.linspace(0, R, num=k)
+        v = implicit_solution(r_ar, t_ar, 2.64, 0.13, 0.002, 0.5)
+        t_values = [10.0]
+        r_values = [0.0, 1.0, 2.0, 3.0]
+        plot(v, t_ar, r_ar, t_values, 't', i, k)
 
-    t_values = [0.0, 1.0, 5.0, 10.0, 70.0]
-    r_values = [0.0, 1.0, 2.0, 3.0]
-    plot(v, t_ar, r_ar, t_values, 't')
-    plot(v, r_ar, t_ar, r_values, 'r')
+    #t_values = [0.0, 1.0, 5.0, 10.0, 70.0]
+    plt.ylabel("U(r, t)")
+    plt.grid()
+    plt.legend()
+    plt.show()
+    #plot(v, r_ar, t_ar, r_values, 'r')
