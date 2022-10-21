@@ -10,7 +10,7 @@ L = 0.5
 K = 0.13
 C = 2.64
 ALPHA = 0.002
-n = 100
+n = 50
 
 
 def psi(ri) -> float:
@@ -32,7 +32,7 @@ def implicit_solution(r: [float],
 
     u = np.zeros((_K + 1, _I + 1))
 
-    for i in range(0, _I):
+    for i in range(0, _I + 1):
         u[0][i] = psi(r[i])
 
     p_0 = 4.0 * gamma / alpha_0
@@ -83,37 +83,101 @@ def analytic_solution(r, t, label):
     return u
 
 
-def plot(result, arr, arr2, values, label, cur_i, cur_k):
+def plot(result, arr, arr2, values, label, cur_i=None, cur_k=None):
     h = arr[1] - arr[0]
     for value in values:
         k = ceil(value / h)
         if label == 'r':
-            plt.plot(arr2, result[:, k], label='Разностное решение: ' + ' I = ' + str(cur_i) + ' K = ' + str(cur_k))
+            if cur_i:
+                plt.plot(arr2, result[:, k], label='Разностное решение: ' + ' I = ' + str(cur_i) + ' K = ' + str(cur_k))
+            else:
+                plt.plot(arr2, result[:, k], label='r = ' + str(value))
             plt.xlabel('t')
         else:
-            plt.plot(arr2, result[k, :], label='Разностное решение: ' + ' I = ' + str(cur_i) + ' K = ' + str(cur_k))
+            if cur_i:
+                plt.plot(arr2, result[k, :], label='Разностное решение: ' + ' I = ' + str(cur_i) + ' K = ' + str(cur_k))
+            else:
+                plt.plot(arr2, result[k, :], label='t = ' + str(value))
             plt.xlabel('r')
 
 
-if __name__ == '__main__':
-    arr_I = [10, 20, 40, 80, 160, 320]
-    arr_K = [20, 40, 80, 160, 320, 640]
-
-    for _i, _k in zip(arr_I, arr_K):
-        t_ar = np.linspace(0, T, num=_i)
-        r_ar = np.linspace(0, R, num=_k)
-        res = implicit_solution(r_ar, t_ar)
-        t_values = [10.0]
-        # r_values = [0.0, 1.0, 2.0, 3.0]
-        plot(res, t_ar, r_ar, t_values, 't', _i, _k)
+def convergence():
+    arr_i = [10, 20, 40, 80, 160, 320]
+    arr_k = [20, 40, 80, 160, 320, 640]
+    for _i, _k in zip(arr_i, arr_k):
+        arr_t = np.linspace(0, T, num=_i)
+        arr_r = np.linspace(0, R, num=_k)
+        res = implicit_solution(arr_r, arr_t)
+        r = 1.0
+        plot(res, arr_r, arr_t, [r], 'r', _i, _k)
         if _i == 320:
-            analytic_res = analytic_solution(r_ar, 10.0, 't')
-            plt.plot(r_ar, analytic_res, label='Аналитическое решение: ' + ' I = ' + str(_i) + ' K = ' + str(_k))
+            analytic_res = analytic_solution(1.0, arr_t, 'r')
+            plt.plot(arr_t, analytic_res, label='Аналитическое решение: ' + ' I = ' + str(_i) + ' K = ' + str(_k))
+    plt.title("r = 1.0")
+    plt.xlabel('t')
+    plt.ylabel("U(r, t)")
+    plt.grid()
+    plt.legend()
+    plt.show()
 
-    # t_values = [0.0, 1.0, 5.0, 10.0, 70.0]
+    for _i, _k in zip(arr_i, arr_k):
+        arr_t = np.linspace(0, T, num=_i)
+        arr_r = np.linspace(0, R, num=_k)
+        res = implicit_solution(arr_r, arr_t)
+        t = 10.0
+        plot(res, arr_t, arr_r, [t], 't', _i, _k)
+        if _i == 320:
+            analytic_res = analytic_solution(arr_r, 10.0, 't')
+            plt.plot(arr_r, analytic_res, label='Аналитическое решение: ' + ' I = ' + str(_i) + ' K = ' + str(_k))
+    plt.title("t = 10.0")
     plt.xlabel('r')
     plt.ylabel("U(r, t)")
     plt.grid()
     plt.legend()
     plt.show()
-    # plot(v, r_ar, t_ar, r_values, 'r')
+
+
+def visualization():
+    t_values = [0.0, 1.0, 5.0, 10.0]
+    r_values = [0.0, 1.0, 2.0, 3.0]
+    t_ar = np.linspace(0, T, num=160)
+    r_ar = np.linspace(0, R, num=320)
+    res = implicit_solution(r_ar, t_ar)
+    plot(res, r_ar, t_ar, r_values, 'r')
+    plt.ylabel("U(r, t)")
+    plt.grid()
+    plt.legend()
+    plt.show()
+    plot(res, t_ar, r_ar, t_values, 't')
+    plt.ylabel("U(r, t)")
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+def accuracy():
+    arr_i = [10, 20, 40, 80, 160, 320, 640, 1280]
+    arr_k = [20, 40, 80, 160, 320, 640, 1280, 2560]
+    impl_results = []
+    analytic_res = 0
+    for _i, _k in zip(arr_i, arr_k):
+        arr_t = np.linspace(0, T, num=_i)
+        arr_r = np.linspace(0, R, num=_k)
+        t = 40.0
+        k = ceil(t / (arr_t[1] - arr_t[0]))
+        impl_results.append(implicit_solution(arr_r, arr_t)[k, 0])
+        if _i == 320:
+            analytic_res = analytic_solution(arr_r, 40.0, 't')[0]
+
+    a = impl_results[0] - analytic_res
+    for i in range(1, len(arr_i)):
+        b = impl_results[i] - analytic_res
+        c = a / b
+        print(arr_i[i], arr_k[i], a, b, c)
+        a = b
+
+
+if __name__ == '__main__':
+    # visualization()
+    # convergence()
+    accuracy()
